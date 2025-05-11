@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<!-- auth-register.html  21 Nov 2019 04:05:01 GMT -->
+<head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no" name="viewport">
+  <title>Otika - Admin Dashboard Template</title>
+  <!-- General CSS Files -->
+  <link rel="stylesheet" href="./static/assets2/css/app.min.css">
+  <link rel="stylesheet" href="./static/assets2/bundles/jquery-selectric/selectric.css">
+  <!-- Template CSS -->
+  <link rel="stylesheet" href="./static/assets2/css/style.css">
+  <link rel="stylesheet" href="./static/assets2/css/components.css">
+  <!-- Custom style CSS -->
+  <link rel="stylesheet" href="./static/assets2/css/custom.css">
+  <link rel='shortcut icon' type='image/x-icon' href='./static/assets2/img/favicon.ico' />
+</head>
+
+<body>
+  <div class="loader"></div>
+  <div id="app">
+    <section class="section">
+      <div class="container mt-5">
+        <div class="row">
+          <div class="col-12 col-sm-10 offset-sm-1 col-md-8 offset-md-2 col-lg-8 offset-lg-2 col-xl-8 offset-xl-2">
+            <div class="card card-primary">
+              {%for message in messages %}
+              <h1 style ="color : green;"> {{message}}</h1>
+              {%endfor%}
+              <div class="card-header ">
+                <h4>Register</h4>
+              </div>
+              <div class="card-body">
+                <form method="POST" action="{% url 'register' %}" enctype = "multipart/form-data">
+                  {% csrf_token %}
+                    <div class="form-group ">
+                      <label for="name">name</label>
+                      <input id="name" type="text" class="form-control" name="name" autofocus>
+                    </div>
+                      <label for="role">Role</label>
+                      <select id="role" class="form-control" name="role" required onchange="toggleMatriculeField()">
+                          <option value="" disabled selected>Sélectionnez un rôle</option>
+                          <option value="2">Recruteur</option>
+                          <option value="1">Etudiant</option>
+                      </select>
+                   </div>
+
+                   <div class="form-group" id="matricule-field" style="display: none;">
+                    <label for="matricule">Matricule</label>
+                    <input id="matricule" type="text" class="form-control" name="matricule">
+                   </div>
+                  
+                  <div class="form-group">
+                    <label for="email">Email</label>
+                    <input id="email" type="email" class="form-control" name="email">
+                    <div class="invalid-feedback">
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="form-group col-6">
+                      <label for="password" class="d-block">Password</label>
+                      <input id="password" type="password" class="form-control pwstrength" data-indicator="pwindicator"
+                        name="password">
+                      <div id="pwindicator" class="pwindicator">
+                        <div class="bar"></div>
+                        <div class="label"></div>
+                      </div>
+                    </div>
+                    <div class="form-group col-6">
+                      <label for="password" class="d-block">Password Confirmation</label>
+                      <input id="password" type="password" class="form-control" name="password-confirm">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <div class="custom-control custom-checkbox">
+                      <input type="checkbox" name="agree" class="custom-control-input" id="agree">
+                      <label class="custom-control-label" for="agree">I agree with the terms and conditions</label>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <button type="submit"  class="btn btn-primary btn-lg btn-block">
+                      Register
+                    </button>
+                  </div>
+                </form>
+               
+              </div>
+              <div class="mb-4 text-muted text-center">
+                Already Registered? <a href="{% url 'login' %}">Login</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function toggleMatriculeField() {
+        const roleSelect = document.getElementById("role");
+        const matriculeField = document.getElementById("matricule-field");
+        
+        if (roleSelect.value === "1") {
+            matriculeField.style.display = "block"; // Afficher le champ matricule
+        } else {
+            matriculeField.style.display = "none"; // Cacher le champ matricule
+        }
+    }
+ </script>
+ 
+  <!-- General JS Scripts -->
+  <script src="./static/assets2/js/app.min.js"></script>
+  <!-- JS Libraies -->
+  <script src="./static/assets2/bundles/jquery-pwstrength/jquery.pwstrength.min.js"></script>
+  <script src="./static/assets2/bundles/jquery-selectric/jquery.selectric.min.js"></script>
+  <!-- Page Specific JS File -->
+  <script src="./static/assets2/js/page/auth-register.js"></script>
+  <!-- Template JS File -->
+  <script src="./static/assets2/js/scripts.js"></script>
+  <!-- Custom JS File -->
+  <script src="./static/assets2/js/custom.js"></script>
+</body>
+
+
+<!-- auth-register.html  21 Nov 2019 04:05:02 GMT -->
+</html>

@@ -1,0 +1,187 @@
+################ views.py ###################
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.hashers import make_password
+from .models import User , Role , Profile
+from django.contrib.auth import login
+from django.contrib import messages
+from django.shortcuts import get_object_or_404
+from django.core.mail import send_mail
+from django.contrib.auth.tokens import default_token_generator
+from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+from django.conf import settings
+from django.utils.crypto import get_random_string
+
+from django.http import JsonResponse
+
+
+def check_user_exists(request):
+    print(request)  # Juste pour montrer que l'objet est utilisé
+    user_exists = User.objects.exists()  # Vérifie si des utilisateurs existent
+    return JsonResponse({'exists': user_exists})
+
+def register(request):
+    if request.method == 'POST':
+      name = request.POST.get('name')
+      email = request.POST.get('email')
+      password = request.POST.get('password')
+      image = request.POST.get('image')
+      matricule = request.POST.get('matricule')
+      role_id = request.POST.get('role')
+      
+      # verifie si le mot de passe existe deja
+      if User.objects.filter(matricule=matricule).exists():
+          print('hey')
+          return render(request, 'user/register.html', {'error': 'Ce matricule existe déjà.'})# Vérifie la valeur de role_id
+      
+      if User.objects.filter(email=email).exists():
+        print('ahh')
+        return render(request, 'user/register.html', {'error': 'Cet email existe déjà.'})
+     # hacher le mot de passe
+      password_confirm = request.POST.get('password-confirm')
+      if password != password_confirm:
+       print('ff')
+       return render(request, 'user/register.html', {'error': 'Les mots de passe ne correspondent pas.'})
+     
+      hashed_password = make_password(password)
+     
+      role = Role.objects.get(id=role_id)
+      
+   
+      donnees = User (name = name , email = email , password = hashed_password , image = image , matricule = matricule , role = role )
+     
+      donnees.save()
+    
+      return redirect('login')
+    return render (request , 'user/register.html')
+    
+def login_view(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        
+        try:
+            user = User.objects.get(email=email)
+            if user.check_password(password):  # Vérifiez le mot de passe haché
+                login(request, user)
+                return redirect('index')  # Rediriger vers la page d'accueil
+            else:
+                return render(request, 'user/login.html', {'error': 'Mot de passe invalide.'})
+        except User.DoesNotExist:
+            return render(request, 'user/login.html', {'error': 'Utilisateur non trouvé.'})
+
+    return render(request, 'user/login.html')
+
+ +######################  models.py ###################
+ 
+ 
+ from django.db import models
+from django.contrib.auth.hashers import check_password
+from django.utils.timezone import now
+from datetime import datetime , timedelta
+from django.dispatch import receiver
+from django.db.models.signals import post_save
+
+
+
+# Create your models here.
+
+class Role(models.Model):
+    name = models.CharField(max_length=255)
+
+    
+class User(models.Model):
+    name = models.CharField(max_length=150 , default = 'Inconnu') # Ajout du champ username
+    email = models.EmailField(unique=True, default='no_email@mail.com')
+    password = models.CharField(max_length=255)
+    image = models.ImageField(upload_to='images', default='no_image')
+    matricule = models.CharField(max_length=22 , unique=True ,null= True )
+    role = models.ForeignKey(
+        Role,
+        on_delete=models.CASCADE,
+        related_name='users'  
+    )
+    last_login = models.DateTimeField(null=True, blank=True)  # Ajoutez ce champ
+    
+    def __str__(self):
+        return self.name
+    def check_password(self, raw_password):
+        return check_password(raw_password, self.password)
+
+
+
+
+############# app.py ########
+
+from django.apps import AppConfig
+
+
+class UserConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'user'
+    
+    def ready(self):
+        import user.models 
+        
+        
+################### setting.py ######################
+
+CORS_ORIGIN_ALLOW_ALL = True
+CSRF_ORIGIN_ALLOW_ALL = True
+CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1/"]
+
+
+########################## urls.py ######################
+
+from django.urls import path
+from .views import register , login_view , forgot , reset , profile
+
+urlpatterns = [
+    path('register', register, name= 'register'),
+    path('login', login_view, name='login'),
+   
+]
+
+
+#################  page acceuil#################
+
+ <script>
+    $(document).ready(function() {
+        $(document).on('click', function() {
+            $.get('check', function(data) {
+                if (!data.exists) {
+                    window.location.href = 'register';  // Redirige vers la page d'enregistrement
+                }
+            }).fail(function() {
+                console.error('Erreur lors de la vérification de l\'existence d\'utilisateur.');
+            });
+        });
+    });
+</script>
+####################### page enregistrement ################
+
+</div>
+                   <label for="role">Role</label>
+                      <select id="role" class="form-control" name="role" required onchange="toggleMatriculeField()">
+                          <option value="" disabled selected>Sélectionnez un rôle</option>
+                          <option value="2">Recruteur</option>
+                          <option value="1">Etudiant</option>
+                      </select>
+                   </div>
+
+
+
+  <script>
+    function toggleMatriculeField() {
+        const roleSelect = document.getElementById("role");
+        const matriculeField = document.getElementById("matricule-field");
+        
+        if (roleSelect.value === "1") {
+            matriculeField.style.display = "block"; // Afficher le champ matricule
+        } else {
+            matriculeField.style.display = "none"; // Cacher le champ matricule
+        }
+    }
+ </script>        
+
